@@ -1,11 +1,17 @@
 import express from "express";
+import cors from "cors";
 import { randomUUID } from "crypto";
 import { growdevers } from "./data.js";
 import * as dotenv from "dotenv";
+import {
+  validateGrowdeverMiddleware,
+  verifyGrowdeverRegisteredMiddleware,
+} from "./middlewares.js";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 const port = process.env.PORT;
 
 // Routes
@@ -14,6 +20,21 @@ const port = process.env.PORT;
 app.get("/growdevers", (req, res) => {
   try {
     const { name, email, email_includes, age, registered } = req.query;
+
+    if (
+      Object.keys(req.query).length !== 0 &&
+      !Object.keys(req.query).includes("name") &&
+      !Object.keys(req.query).includes("email") &&
+      !Object.keys(req.query).includes("email_includes") &&
+      !Object.keys(req.query).includes("age") &&
+      !Object.keys(req.query).includes("registered")
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: "Parâmetros inválidos",
+      });
+    }
+
     let data = growdevers;
 
     if (name) {
@@ -81,16 +102,10 @@ app.get("/growdevers/:id", (req, res) => {
 });
 
 // POST /growdevers
-app.post("/growdevers", (req, res) => {
+app.post("/growdevers", [validateGrowdeverMiddleware], (req, res) => {
   try {
     const { name, email, age, registered } = req.body;
 
-    if (!name || !email || !age || typeof registered !== "boolean") {
-      return res.status(400).json({
-        ok: false,
-        message: "Dados inválidos",
-      });
-    }
     const newGrowdever = {
       id: randomUUID(),
       name,
@@ -116,46 +131,42 @@ app.post("/growdevers", (req, res) => {
 });
 
 // PUT /growdevers/:id
-app.put("/growdevers/:id", (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, email, age, registered } = req.body;
+app.put(
+  "/growdevers/:id",
+  [verifyGrowdeverRegisteredMiddleware, validateGrowdeverMiddleware],
+  (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, age, registered } = req.body;
 
-    if (!name || !email || !age || typeof registered !== "boolean") {
-      return res.status(400).json({
+      const growdever = growdevers.find((growdever) => growdever.id === id);
+
+      if (!growdever) {
+        return res.status(404).json({
+          ok: false,
+          message: "Growdever não encontrado",
+        });
+      }
+
+      growdever.name = name;
+      growdever.email = email;
+      growdever.age = age;
+      growdever.registered = registered;
+
+      return res.status(200).json({
+        ok: true,
+        message: "Growdever atualizado com sucesso",
+        data: growdever,
+      });
+    } catch (error) {
+      return res.status(500).json({
         ok: false,
-        message: "Dados inválidos",
+        message: "Não foi possível atualizar o Growdever",
+        error: error.message,
       });
     }
-    const growdever = growdevers.find((growdever) => growdever.id === id);
-
-    if (!growdever) {
-      return res.status(404).json({
-        ok: false,
-        message: "Growdever não encontrado",
-      });
-    }
-    growdever = {
-      ...growdever,
-      name,
-      email,
-      age,
-      registered,
-    };
-
-    return res.status(200).json({
-      ok: true,
-      message: "Growdever atualizado com sucesso",
-      data: growdever,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      ok: false,
-      message: "Não foi possível atualizar o Growdever",
-      error: error.message,
-    });
   }
-});
+);
 
 // PATCH /growdevers/:id - Toggle registered
 app.patch("/growdevers/:id", (req, res) => {
@@ -217,5 +228,5 @@ app.delete("/growdevers/:id", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Server started on http://localhost:${port}`);
+  console.log(`Server started on http://localhost:${port}`);
 });
