@@ -70,7 +70,7 @@ app.get("/growdevers", (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Não foi possível obter a lista de Growdevers",
-      error: error.message,
+      error: error.toString(),
     });
   }
 });
@@ -96,7 +96,7 @@ app.get("/growdevers/:id", (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Não foi possível obter o Growdever",
-      error: error.message,
+      error: error.toString(),
     });
   }
 });
@@ -125,7 +125,7 @@ app.post("/growdevers", [validateGrowdeverMiddleware], (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Não foi possível criar o Growdever",
-      error: error.message,
+      error: error.toString(),
     });
   }
 });
@@ -162,7 +162,7 @@ app.put(
       return res.status(500).json({
         ok: false,
         message: "Não foi possível atualizar o Growdever",
-        error: error.message,
+        error: error.toString(),
       });
     }
   }
@@ -192,7 +192,7 @@ app.patch("/growdevers/:id", (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Não foi possível atualizar o Growdever",
-      error: error.message,
+      error: error.toString(),
     });
   }
 });
@@ -222,7 +222,7 @@ app.delete("/growdevers/:id", (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Não foi possível excluir o Growdever",
-      error: error.message,
+      error: error.toString(),
     });
   }
 });

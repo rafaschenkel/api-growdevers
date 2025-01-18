@@ -41,7 +41,7 @@ export const validateGrowdeverMiddleware = (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(500).json({ ok: false, message: error.message });
+    return res.status(500).json({ ok: false, message: error.toString() });
   }
 };
 
@@ -63,6 +63,6 @@ export const verifyGrowdeverRegisteredMiddleware = (req, res, next) => {
 
     next();
   } catch (error) {
-    return res.status(500).json({ ok: false, message: error.message });
+    return res.status(500).json({ ok: false, message: error.toString() });
   }
 };
